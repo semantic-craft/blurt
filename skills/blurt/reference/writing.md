@@ -39,8 +39,9 @@ These come from writing-infra (`docs/SPEC.md`, `writing-companion`); they overri
 3. `writing.py said <session>` → fills `said`. Where `said` and your `quote` differ, check the fix is only a
    recognition fix.
 4. `writing.py locate <session>` → `path:line` + `excerpt` for every `draft_ref.anchor`. `fuzzy` → confirm the
-   excerpt is the spot; `ambiguous` / `none` → re-read the frame, correct the anchor, run again. Never pick a line by
-   guessing; an unlocated item keeps `section` and says so.
+   excerpt is the spot; `ambiguous` → add the heading visible on screen as `section` (it picks among repeats) or
+   lengthen the anchor; `none` → re-read the frame and correct the anchor. Run again. Never pick a line by guessing;
+   an unlocated item keeps `section` and says so.
 5. Frames (§4): box the anchor sentence or the source passage.
 6. Review page (§5).
 7. `writing.py export <session>` → `<session>/writing-record.md`: a discussion record in writing-companion's format

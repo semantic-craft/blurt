@@ -101,6 +101,9 @@ class Writing(unittest.TestCase):
         self.assertEqual(amb["match"], "ambiguous")
         self.assertEqual(amb["candidates"], ["drafts/paper.md:3", "drafts/paper.md:9"])
         self.assertEqual(writing.locate("完全无关的一句话在这里出现", files)["match"], "none")
+        by_sec = writing.locate("公开规则并不等于个别理由", files, section="二、例外")  # heading seen on screen
+        self.assertEqual((by_sec["line"], by_sec["match"]), (9, "exact"))
+        self.assertEqual(writing.locate("公开规则并不等于个别理由", files, section="三、结论")["match"], "ambiguous")
 
     def test_locate_writes_refs_from_config_manuscript(self):
         p = run("locate", self.session)

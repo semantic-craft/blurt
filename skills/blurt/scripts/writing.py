@@ -78,7 +78,15 @@ def _paragraphs(text: str) -> list[tuple[int, str]]:
     return paras
 
 
-def locate(anchor: str, files: dict[str, str]) -> dict:
+def _heading(text: str, line: int) -> str:
+    """The nearest Markdown heading at or above `line`."""
+    for s in reversed(text.splitlines()[:line]):
+        if s.lstrip().startswith("#"):
+            return s.lstrip("# ").strip()
+    return ""
+
+
+def locate(anchor: str, files: dict[str, str], section: str = "") -> dict:
     target, _ = _norm(anchor)
     if len(target) < 4:
         return {"match": "none", "reason": "anchor too short"}
@@ -91,6 +99,12 @@ def locate(anchor: str, files: dict[str, str]) -> dict:
             i = norm.find(target, i + 1)
     if len(hits) == 1:
         return {"path": hits[0][0], "line": hits[0][1], "match": "exact"}
+    if len(hits) > 1 and section:
+        # the heading visible on screen tells repeated sentences apart (e.g. a draft that quotes itself in notes)
+        sec = _norm(section)[0]
+        near = [(p, n) for p, n in hits if sec and (sec in _norm(_heading(files[p], n))[0] or _norm(_heading(files[p], n))[0] in sec)]
+        if len(near) == 1:
+            return {"path": near[0][0], "line": near[0][1], "match": "exact", "by_section": True}
     if hits:
         return {"match": "ambiguous", "candidates": [f"{p}:{n}" for p, n in hits[:10]]}
     best = (0.0, "", 0)
@@ -134,9 +148,9 @@ def cmd_locate(a) -> None:
         ref = it.get("draft_ref")
         if not isinstance(ref, dict) or not ref.get("anchor"):
             continue
-        for k in ("path", "line", "match", "score", "candidates", "excerpt", "reason"):
+        for k in ("path", "line", "match", "score", "candidates", "excerpt", "reason", "by_section"):
             ref.pop(k, None)
-        ref.update(locate(ref["anchor"], files))
+        ref.update(locate(ref["anchor"], files, ref.get("section", "")))
         if ref.get("line"):
             ref["excerpt"] = _excerpt(files[ref["path"]], ref["line"])
         stats[ref["match"]] = stats.get(ref["match"], 0) + 1
