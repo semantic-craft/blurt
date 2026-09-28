@@ -23,17 +23,25 @@ LABELS = {
            "actual": "实际效果", "expected": "预期效果", "steps": "复现步骤", "time": "录屏时间点", "quote": "原话",
            "frames": "截图", "clip": "录屏片段", "code_refs": "疑似代码位置", "questions": "待确认", "answer": "回答",
            "summary": "概述", "why": "为什么", "inspired_by": "灵感来源", "next_steps": "下一步", "open_questions": "待想清楚",
-           "details": "详情", "due": "截止", "tags": "标签", "source": "来源", "kind": "类型"},
+           "details": "详情", "due": "截止", "tags": "标签", "source": "来源", "kind": "类型",
+           "said": "机器转写", "restatement": "模型复述（待核对）", "candidates": "模型建议（候选）", "draft_ref": "正文位置",
+           "source_ref": "画面上的来源", "category": "类别", "relation": "候选关系", "use_in": "作者说可放在",
+           "need": "需要的材料", "search_hint": "检索线索（候选）", "dictated": "口述句子"},
     "en": {"id": "ID", "title": "Title", "module": "Module", "owner": "Owner", "severity": "Severity", "type": "Type",
            "actual": "Actual", "expected": "Expected", "steps": "Steps to reproduce", "time": "Time in recording",
            "quote": "Quote", "frames": "Screenshots", "clip": "Clip", "code_refs": "Suspected code",
            "questions": "Open questions", "answer": "Answer", "summary": "Summary", "why": "Why",
            "inspired_by": "Inspired by", "next_steps": "Next steps", "open_questions": "Open questions",
-           "details": "Details", "due": "Due", "tags": "Tags", "source": "Source", "kind": "Kind"},
+           "details": "Details", "due": "Due", "tags": "Tags", "source": "Source", "kind": "Kind",
+           "said": "Machine transcript", "restatement": "Model reading (to check)", "candidates": "Model suggestions",
+           "draft_ref": "In the draft", "source_ref": "Source on screen", "category": "Category", "relation": "Candidate relation",
+           "use_in": "Author says it goes", "need": "Material needed", "search_hint": "Search leads", "dictated": "Dictated"},
 }
-KINDS = {"zh": {"issue": "问题", "idea": "想法", "note": "笔记", "task": "待办"},
-         "en": {"issue": "Issues", "idea": "Ideas", "note": "Notes", "task": "Tasks"}}
-KIND_ORDER = ["issue", "idea", "task", "note"]
+KINDS = {"zh": {"issue": "问题", "idea": "想法", "note": "笔记", "task": "待办",
+               "revision": "修改意见", "reading": "阅读反应", "gap": "资料缺口", "thought": "口述思考"},
+         "en": {"issue": "Issues", "idea": "Ideas", "note": "Notes", "task": "Tasks",
+               "revision": "Revisions", "reading": "Reading", "gap": "Gaps", "thought": "Thoughts"}}
+KIND_ORDER = ["revision", "gap", "reading", "thought", "issue", "idea", "task", "note"]
 COMMON = ["id", "title", "time", "quote", "frames", "clip", "source", "tags", "questions", "answer"]
 SKIP = {"kind", "status", "exported", "confidence", "merged_from", "_touched", "_dropped"}
 
@@ -106,7 +114,8 @@ def main():
                 if k not in SKIP and k not in COMMON and k not in extra:
                     extra.append(k)
         cols = ["id", "title", *extra, "time", "quote", "source", "tags", "frames", "clip", "questions", "answer"]
-        name = {"issue": "issues", "idea": "ideas", "note": "notes", "task": "tasks"}.get(kind, kind)
+        name = {"issue": "issues", "idea": "ideas", "note": "notes", "task": "tasks", "revision": "revisions",
+                "reading": "readings", "gap": "gaps", "thought": "thoughts"}.get(kind, kind)
         path = out / f"{name}.csv"
         with open(path, "w", newline="", encoding="utf-8-sig") as fh:  # BOM so Excel reads CJK correctly
             w = csv.writer(fh)

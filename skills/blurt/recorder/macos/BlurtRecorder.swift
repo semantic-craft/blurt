@@ -1152,7 +1152,6 @@ func ensureDefaultWorkspace() {
         "处理最新的录屏". Outputs are written next to the recording.
         """
         try? text.write(to: guide, atomically: true, encoding: .utf8)
-        try? fm.createSymbolicLink(at: defaultWorkspace.appendingPathComponent("CLAUDE.md"), withDestinationURL: guide)
     }
 }
 
@@ -1689,7 +1688,7 @@ final class App: NSObject, NSApplicationDelegate, NSMenuDelegate {
             if SMAppService.mainApp.status == .enabled { try SMAppService.mainApp.unregister() } else { try SMAppService.mainApp.register() }
         } catch { alert(L("设置失败", "Couldn't change it"), error.localizedDescription) }
     }
-    @objc func mHelp() { NSWorkspace.shared.open(URL(string: "https://github.com/AGIHunt/blurt")!) }
+    @objc func mHelp() { NSWorkspace.shared.open(URL(string: "https://github.com/semantic-craft/blurt")!) }
     @objc func mQuit() { NSApp.terminate(nil) }
 
     // tiny, non-blocking toast under the menu bar (no notification permission needed)

@@ -2,12 +2,14 @@
 name: blurt
 description: >-
   Screen + voice → structured work. The user records their screen while talking (demoing their product, browsing,
-  exploring an idea); turn the recording into items — bug/polish issues with repro steps, frames and suspected code,
-  ideas with the inspiration behind them, notes, todos — let them review on a local page, then export (Feishu/Lark
-  Bitable, CSV/Markdown, GitHub Issues…) or start fixing. Use when the user wants to record feedback / QA / ideas by
-  talking while using their screen, hands over such a video, or wants to process recordings from the Blurt app.
-  Triggers: "blurt", "/blurt", "开始口喷", "口喷鸡", "开始录", "录屏提 bug", "录一下我的想法", "record feedback",
-  "turn this recording into issues", "处理我录的视频", "process my recordings".
+  exploring an idea, reading their own draft or a source); turn the recording into items — bug/polish issues with
+  repro steps, frames and suspected code, ideas, notes, todos, and in writing projects revision remarks located in the
+  manuscript, reactions to sources, material gaps and spoken thinking kept in the author's own words — let them
+  review on a local page, then export (writing discussion record, Feishu/Lark Bitable, CSV/Markdown, GitHub
+  Issues…) or start fixing. Use when the user wants to record feedback / QA / ideas / reading notes by talking while
+  using their screen, hands over such a video, or wants to process recordings from the Blurt app.
+  Triggers: "blurt", "/blurt", "开始口喷", "口喷鸡", "开始录", "录屏提 bug", "录一下我的想法", "边读稿边说",
+  "录一下读文献的想法", "record feedback", "turn this recording into issues", "处理我录的视频", "process my recordings".
 ---
 
 # blurt 🐔 — show it, say it, get structured work back
@@ -78,7 +80,12 @@ Read the whole transcript first, glance at a few frames, then write `<session>/i
 | `idea` | something to build / change / borrow ("这个网站的这里好") | `reference/lenses/idea.md` |
 | `note` | an observation / finding / fact worth keeping | `reference/lenses/note.md` |
 | `task` | an action item that isn't a product issue | `reference/lenses/task.md` |
+| `revision` · `reading` · `gap` · `thought` | writing project: remarks on the draft, reactions to a source, material to find, thinking aloud | `reference/lenses/<kind>.md` |
 | custom | a lens in `.blurt/lenses/` or `~/.blurt/lenses/` fits, or the user asked for it | that file |
+
+**Writing project** (`.blurt/config.json` has `writing`, or `docs/argument-state.md` exists): read
+`reference/writing.md` first — the author's words stay verbatim and apart from yours, speech stays local, the
+manuscript and argument state are never edited, and `writing.py` fills `said`, locates the draft and exports.
 
 Principles — judgement, not rules:
 - One item = one thing. People jump around, revisit, correct themselves ("不对，是…"), or say two things in one
@@ -130,6 +137,8 @@ ideas → an ideas board / doc; notes → Markdown; tasks → the user's todo to
   No table yet → `feishu.py create "<name>"`. Other columns → `feishu.py fields` then `--map`.
   Details: `reference/export-feishu.md`.
 - Markdown + CSV → `export_local.py <session>` (all kinds; always a good local record).
+- Writing project → `writing.py export <session>` (discussion record in writing-companion's format; see
+  `reference/writing.md` for where it may go).
 - GitHub Issues / Linear / Jira / Notion / Obsidian / anything else → `reference/export-other.md`; use the CLI or
   MCP tool the user has; map fields by meaning.
 Confirm destination and count before creating anything remotely; report links afterwards. Then offer the natural

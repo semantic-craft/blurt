@@ -1,7 +1,7 @@
 {
   "name": "blurt",
-  "version": "0.3.1",
-  "description": "Show it. Say it. Your AI gets it — record your screen, talk, get bugs, ideas and todos back. 边看边喷，AI 全懂。",
+  "version": "0.4.0",
+  "description": "Screen + voice → structured work, with a writing mode: read your draft or sources aloud, get located revision remarks, reading reactions, gaps and spoken thinking in your own words. 边看边说，写作版。",
   "license": "MIT",
   "keywords": [
     "feedback",
@@ -9,11 +9,13 @@
     "screen-recording",
     "asr",
     "feishu",
-    "qa"
+    "qa",
+    "writing",
+    "reading-notes"
   ],
-  "repository": "https://github.com/AGIHunt/blurt",
-  "homepage": "https://github.com/AGIHunt/blurt",
+  "repository": "https://github.com/semantic-craft/blurt",
+  "homepage": "https://github.com/semantic-craft/blurt",
   "author": {
-    "name": "AGI Hunt"
+    "name": "semantic-craft (fork of AGI Hunt's blurt)"
   }
 }

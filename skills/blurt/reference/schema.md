@@ -11,6 +11,7 @@ kind-specific fields come from its **lens** (`reference/lenses/<kind>.md`, or a 
   "title": "官网改版的一些想法",             // one line for the whole recording
   "digest": "## 总览\n- …",                // optional markdown overview — write one for exploratory / idea sessions
   "reviewed": false,                      // set true by review.py when the user finishes
+  "asr": {"backend": "sensevoice"},       // written by writing.py said, from transcript.json
   "items": [
     {
       "id": "I-001",                      // stable, sequential
@@ -27,6 +28,10 @@ kind-specific fields come from its **lens** (`reference/lenses/<kind>.md`, or a 
       "answer": "",                        // filled in on the review page
       "status": "draft",                  // draft | confirmed | deleted
       "exported": {},                      // written by exporters; prevents duplicates
+
+      "said": "",                          // raw ASR text of `time`, filled by writing.py said — never hand-edited
+      "restatement": "",                   // optional: your reading of the point, for the user to check
+      "candidates": [],                    // optional: your suggestions, kept apart from what the user said
 
       // + the lens's own fields, e.g. for "issue": module, owner, severity, type, actual, expected, steps, code_refs
     }

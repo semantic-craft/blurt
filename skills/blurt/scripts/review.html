@@ -132,6 +132,10 @@ kbd{font:600 10.5px/1 var(--mono);padding:3px 5px;border-radius:5px;background:v
 .quote{position:relative;margin:4px 0 14px;padding:12px 14px 12px 16px;border-radius:12px;background:var(--panel);border:1px solid var(--line);color:var(--ink-2);font-size:13.5px}
 .quote::before{content:"“";position:absolute;left:8px;top:-6px;font:700 34px/1 Georgia,serif;color:var(--accent);opacity:.8}
 .quote .meta{display:flex;align-items:center;gap:8px;margin-top:8px;color:var(--mute);font:600 11.5px/1 var(--mono)}
+.quote textarea{width:100%;border:0;background:none;resize:none;color:inherit;font:inherit;padding:0;outline:none}
+.quote .said{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line-2);color:var(--mute);font-size:12.5px}
+.said em,.refbox em{font-style:normal;font:600 11px/1 var(--mono);color:var(--faint);margin-right:6px}
+.refbox{padding:9px 11px;border-radius:var(--r-sm);background:var(--panel-2);border:1px solid var(--line);font-size:12.5px;color:var(--ink-2);display:grid;gap:4px;word-break:break-word}
 .linkbtn{color:var(--accent);font-weight:600;font-size:12px;display:inline-flex;gap:5px;align-items:center;padding:4px 8px;border-radius:7px;margin:-4px -8px}
 .linkbtn:hover{background:var(--accent-soft)}
 .ask{margin:0 0 14px;padding:12px 14px;border-radius:12px;background:var(--amber-soft);border:1px solid color-mix(in srgb,var(--amber) 35%,transparent)}
@@ -272,7 +276,8 @@ const T = {
     k_next:"Next / previous",k_keep:"Keep and go next",k_drop:"Drop and go next",k_undo:"Undo",k_merge:"Merge into previous",
     k_sev:"Severity high / medium / low",k_media:"Previous / next frame",k_play:"Play clip or recording",k_edit:"Edit title",
     k_ov:"Overview",k_view:"Focus ⇄ list",k_finish:"Finish review",k_help:"This panel",types:{bug:"Bug",ui:"UI",ux:"UX",copy:"Copy",perf:"Perf"},
-    overview:"Overview",kinds:{issue:"Issue",idea:"Idea",note:"Note",task:"Task"},allKinds:"All kinds",
+    overview:"Overview",kinds:{issue:"Issue",idea:"Idea",note:"Note",task:"Task",revision:"Revision",reading:"Reading",gap:"Gap",thought:"Thought"},allKinds:"All kinds",
+    restatement:"My reading — for you to check, not your position",candidates:"My suggestions (candidates)",said:"Machine transcript",draft_ref:"In the draft",source_ref:"Source on screen",category:"Category",relation:"Candidate relation",use_in:"Where you said it goes",need:"Material needed",search_hint:"Search leads (candidates)",dictated:"Dictated wording — not in the manuscript",
     summary:"The idea",summaryNote:"Summary",why:"Why",inspired_by:"Inspired by",next_steps:"Next steps",open_questions:"Still open",
     details:"Details",due:"Due",tags:"Tags",source:"Source (URL)",items:"items",confirmTitle2:"Hand this back to your agent?"},
   zh:{focus:"专注",list:"列表",keep:"保留",drop:"丢弃",merge:"并入上一条",undo:"撤销",finish:"完成审核",pending:"待审",kept:"保留",dropped:"丢弃",
@@ -286,7 +291,8 @@ const T = {
     k_next:"下一条 / 上一条",k_keep:"保留并下一条",k_drop:"丢弃并下一条",k_undo:"撤销",k_merge:"并入上一条",
     k_sev:"严重程度 高 / 中 / 低",k_media:"上一张 / 下一张图",k_play:"播放片段或原录屏",k_edit:"编辑标题",
     k_ov:"总览",k_view:"专注 ⇄ 列表",k_finish:"完成审核",k_help:"显示本面板",types:{bug:"Bug",ui:"界面",ux:"体验",copy:"文案",perf:"性能"},
-    overview:"总览",kinds:{issue:"问题",idea:"想法",note:"笔记",task:"待办"},allKinds:"全部类型",
+    overview:"总览",kinds:{issue:"问题",idea:"想法",note:"笔记",task:"待办",revision:"修改意见",reading:"阅读反应",gap:"资料缺口",thought:"口述思考"},allKinds:"全部类型",
+    restatement:"模型复述（供你核对，不是你的立场）",candidates:"模型建议（候选）",said:"机器转写原文",draft_ref:"正文位置",source_ref:"画面上的来源",category:"类别",relation:"候选关系",use_in:"你说可以放在",need:"需要的材料",search_hint:"检索线索（候选）",dictated:"口述句子，未入正文",
     summary:"想法",summaryNote:"概述",why:"为什么",inspired_by:"灵感来源",next_steps:"下一步",open_questions:"待想清楚",
     details:"详情",due:"截止",tags:"标签",source:"来源链接",items:"条",confirmTitle2:"把整理结果交回 agent？"}
 };
@@ -298,11 +304,13 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const file=p=>p?"/files/"+String(p).split("/").map(encodeURIComponent).join("/"):"";
 const fmt=s=>{s=Math.max(0,+s||0);const m=Math.floor(s/60),r=Math.floor(s%60);return `${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`};
 const SEV=["high","medium","low"];
-const KIND_ICON={issue:"🐞",idea:"💡",note:"📝",task:"✅"};
+const KIND_ICON={issue:"🐞",idea:"💡",note:"📝",task:"✅",revision:"✏️",reading:"📖",gap:"🔎",thought:"💭"};
 const kindOf=i=>i.kind||"issue";
+const WRITING=new Set(["revision","reading","gap","thought"]);
+const norm=s=>String(s||"").normalize("NFKC").replace(/[\s\p{P}\p{S}]+/gu,"").toLowerCase();
 const kindLabel=k=>T[lang].kinds[k]||k;
 const kindIcon=k=>KIND_ICON[k]||"◆";
-const RESERVED=new Set(["id","kind","title","quote","time","frames","clip","source","tags","confidence","questions","answer","status","exported","merged_from","_touched","_dropped","severity","type"]);
+const RESERVED=new Set(["id","kind","title","quote","time","frames","clip","source","tags","confidence","questions","answer","status","exported","merged_from","_touched","_dropped","severity","type","said","draft_ref","source_ref","dictated"]);
 function mdLite(src){ // tiny markdown: headings, lists, bold, code, links
   const lines=String(src||"").split("\n");let out="",inList=false;
   const inline=x=>esc(x).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
@@ -402,11 +410,20 @@ function renderFocus(anim){
     body=F("summary",t("summary"),"area","big")+F("why",t("why"))+F("inspired_by",t("inspired_by"))+F("next_steps",t("next_steps"),"list")+(i.open_questions?F("open_questions",t("open_questions"),"list"):"");
   }else if(kind==="task"){
     body=F("details",t("details"))+`<div class="grid2">${F("owner",t("owner"),"text")}${F("due",t("due"),"text")}</div>`;
+  }else if(WRITING.has(kind)){
+    const ref=(r,keys)=>r&&typeof r==="object"?keys.filter(k=>r[k]).map(k=>`<div><em>${esc(k)}</em> ${esc(Array.isArray(r[k])?r[k].join(", "):r[k])}</div>`).join(""):"";
+    const dr=ref(i.draft_ref,["path","line","match","excerpt","section","anchor","candidates"]),sr=ref(i.source_ref,["title","authors","zotero_key","viewer_page","printed_page","url","passage"]);
+    body=(i.dictated?`<div class="f"><span class="chip" style="color:var(--amber)">${esc(t("dictated"))}</span></div>`:"")
+      +(dr?`<div class="f"><label>${t("draft_ref")}</label><div class="refbox">${dr}</div></div>`:"")
+      +(sr?`<div class="f"><label>${t("source_ref")}</label><div class="refbox">${sr}</div></div>`:"")
+      +(kind==="gap"?F("need",t("need")):"")+(kind==="revision"?F("category",t("category"),"text"):"")
+      +(kind==="reading"?F("relation",t("relation"),"text")+F("use_in",t("use_in"),"text"):"")
+      +(i.restatement?F("restatement",t("restatement")):"")+((i.candidates||[]).length?F("candidates",t("candidates"),"list"):"")+(kind==="gap"?F("search_hint",t("search_hint"),"list"):"");
   }else{
     body=F("summary",kind==="note"?t("summaryNote"):t("summaryNote"),"area","big")+(i.details!==undefined||kind==="note"?F("details",t("details")):"");
   }
   // anything else the lens added: shown generically so custom lenses just work
-  const shown=new Set(["module","owner","actual","expected","steps","code_refs","summary","why","inspired_by","next_steps","open_questions","details","due"]);
+  const shown=new Set(["module","owner","actual","expected","steps","code_refs","summary","why","inspired_by","next_steps","open_questions","details","due",...(WRITING.has(kind)?["need","category","relation","use_in","restatement","candidates","search_hint"]:[])]);
   for(const [k,v] of Object.entries(i)){if(RESERVED.has(k)||shown.has(k)||k.startsWith("_"))continue;
     if(typeof v==="string")body+=F(k,k.replace(/_/g," "));else if(Array.isArray(v)&&v.every(x=>typeof x==="string"))body+=F(k,k.replace(/_/g," "),"list")}
   body+=`<div class="grid2">${`<div class="f"><label>${t("tags")}</label><input data-k="tags" data-tags="1" value="${esc((i.tags||[]).join(", "))}"></div>`}${`<div class="f"><label>${t("source")}</label><input data-k="source" data-src="1" value="${esc(i.source?.url||"")}"></div>`}</div>`;
@@ -420,9 +437,10 @@ function renderFocus(anim){
       ${i.confidence==="low"?`<span class="chip" style="color:var(--amber)">?</span>`:""}
     </div>
     ${(i.questions||[]).length?`<div class="ask"><div class="h">● ${t("ask")}</div>${i.questions.map(q=>`<div class="qq">${esc(q)}</div>`).join("")}<input data-k="answer" placeholder="${t("answer")}" value="${esc(i.answer||"")}"></div>`:""}
-    ${i.quote?`<div class="quote">${esc(i.quote)}<div class="meta">${i.time?`${fmt(i.time.start)} – ${fmt(i.time.end)}`:""}${data.source_video&&i.time?`<button class="linkbtn" id="origBtn">▶ ${t("playOrig")} <kbd>O</kbd></button>`:""}</div></div>`:""}
+    ${i.quote?`<div class="quote">${WRITING.has(kind)?`<textarea data-k="quote" rows="1">${esc(i.quote)}</textarea>`:esc(i.quote)}${i.said&&norm(i.said)!==norm(i.quote)?`<div class="said"><em>${t("said")}</em> ${esc(i.said)}</div>`:""}<div class="meta">${i.time?`${fmt(i.time.start)} – ${fmt(i.time.end)}`:""}${data.source_video&&i.time?`<button class="linkbtn" id="origBtn">▶ ${t("playOrig")} <kbd>O</kbd></button>`:""}</div></div>`:""}
     ${body}`;
   side.querySelectorAll("textarea").forEach(autosize);
+  requestAnimationFrame(()=>side.querySelectorAll("textarea").forEach(autosize));  // re-measure once laid out
   side.querySelectorAll("[data-k]").forEach(el=>el.addEventListener("input",()=>{
     const k=el.dataset.k;let v=el.value;
     if(el.dataset.list)v=v.split("\n").map(x=>x.replace(/^\s*(\d+[.)、]|[-*•])\s*/,"").trim()).filter(Boolean);

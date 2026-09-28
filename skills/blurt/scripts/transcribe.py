@@ -16,6 +16,8 @@ Backends
   openai       any OpenAI-compatible /audio/transcriptions API (OpenAI, Groq, SiliconFlow, ...)
                env: BLURT_ASR_API_KEY (or OPENAI_API_KEY / GROQ_API_KEY), BLURT_ASR_BASE_URL, BLURT_ASR_MODEL
   dashscope    Alibaba Qwen3-ASR (qwen3-asr-flash) via DashScope OpenAI-compatible chat API. env: DASHSCOPE_API_KEY
+
+In a writing project (.blurt/config.json has a "writing" block) cloud backends refuse to run without --allow-cloud.
 """
 from __future__ import annotations
 
@@ -37,7 +39,8 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
-from _common import MODELS_DIR, die, ffmpeg_bin, fmt_ts, global_config, save_json, update_global_config  # noqa: E402
+from _common import (MODELS_DIR, die, ffmpeg_bin, fmt_ts, global_config, project_config, save_json,  # noqa: E402
+                     update_global_config)
 
 SR = 16000
 SENSEVOICE_REPO = "csukuangfj/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-2024-07-17"
@@ -300,6 +303,10 @@ def cmd_run(a):
     a.language = a.language or cfg.get("language")
     if name not in BACKENDS:
         die(f"unknown backend {name}; choose from {list(BACKENDS)}")
+    if name not in LOCAL and "writing" in project_config(out) and not a.allow_cloud:
+        # unpublished drafts and half-formed arguments stay on this machine unless the author opts in
+        die(f"{name} uploads the audio; this is a writing project (.blurt/config.json → writing). Use a local "
+            f"backend (sensevoice / mlx-whisper / faster-whisper), or pass --allow-cloud if the author agreed.")
 
     t0 = time.time()
     samples = load_audio(src)
@@ -372,6 +379,7 @@ def main():
     r.add_argument("--language", help="e.g. zh, en; default auto-detect")
     r.add_argument("--prompt", help="glossary / context: product & module names, jargon (Whisper/API backends)")
     r.add_argument("--concurrency", type=int, default=4)
+    r.add_argument("--allow-cloud", action="store_true", help="allow a cloud backend inside a writing project")
     s = sub.add_parser("setup")
     s.add_argument("--backend", choices=list(BACKENDS), default="sensevoice")
     s.add_argument("--model")

@@ -1,88 +1,60 @@
-<p align="center"><img src="assets/logo.png" width="132" alt="blurt"></p>
-<h1 align="center">blurt 🐔</h1>
-<p align="center"><b>Show it. Say it. Your AI gets it.</b><br>
-Record your screen, think out loud — your coding agent turns it into bug tickets, idea boards and todos.<br>
-<a href="README.zh-CN.md">中文</a> · works with Claude Code, Codex and any agent that runs skills</p>
+<p align="center"><img src="assets/logo.png" width="112" alt="blurt"></p>
 
-https://github.com/user-attachments/assets/334087d3-9b56-48fa-808a-2fb229ab666a
+# blurt · 写作版
 
-<p align="center"><sub>▶ 80 seconds, sound on 🐔 · made entirely in code — <a href="promo/">source</a></sub></p>
+边看屏幕边说话，录下来交给 agent 整理。本仓库 fork 自 [AGIHunt/blurt](https://github.com/AGIHunt/blurt)（MIT），保留其录屏、本地转写、截图与审核页，按论文写作和 writing-infra（作者自用的写作基础设施）的约定加了写作模式。
 
----
+## 写作时怎么用
 
-**Voice alone is blind. Screenshots plus typing is slow.** The most natural way to tell an AI what you mean is the
-way you'd tell a colleague sitting next to you: point at the screen and talk. blurt records exactly that, and
-your agent does the rest:
+在已接入 writing-infra 的论文项目里，对 agent 说“开始录”，框出要录的区域，然后照常读、照常说：
 
-- splits a rambling half hour into separate items, even when you jump between topics and correct yourself
-- picks the right frame for each one and boxes the exact spot, using where your mouse actually was
-- writes it up: actual vs. expected, repro steps, owner, and **the code that's probably responsible**
-- lets you triage it in a review page, one item at a time with the keyboard
-- files it to Feishu/Lark, GitHub, Linear or Markdown, or goes straight to fixing it
+- **读自己的稿子**：“这段跳了一步”“这个概念前后不一致”。整理成**修改意见**，按画面上那句话回到正文 `path:line`。
+- **读文献**（Zotero 阅读器、PDF、知网、Westlaw……）：“这个观点正好能反驳……”。整理成**阅读反应**，记下画面上的题名、阅读器页码和原段。
+- **边想边说**：主张变了、冒出反驳、放下一个方向。整理成**口述思考**；口述想放进正文的句子单独标出。
+- **说到要找的材料**：“这里得找个判例”。记成**资料缺口**，留给 `search-router` 去找原文。
 
-> What used to take two days of screenshots, red boxes and spreadsheet rows is now a 30-minute walkthrough.
+录完点“完成”，agent 在本机转写、拆条、截图，打开审核页：`A` 保留 · `X` 丢弃 · `J/K` 上下条，原话可以直接改。最后导出一份 writing-companion 格式的讨论记录，分 A 作者原话、M 模型复述、C 模型建议、S 来源、Q 待作者决定五栏；另附按正文顺序排列的修改清单、资料缺口、口述句子，以及机器转写与原话的差异。
 
-## What people blurt
+## 写作模式守住的事
 
-| | |
-|---|---|
-| 🐞 **Polish a vibe-coded product** | An agent built it overnight; now you walk through every page and rant. You get a clean bug list with code pointers, ready for the agent to fix. This is the fastest way to push AI to the finish line. |
-| 💡 **Capture ideas while browsing** | "I like how this site does onboarding… and this pricing page…" You get an idea board: each idea, why you had it, where it came from, the next step, plus a one-page digest. |
-| 🤝 **Hand off from anyone** | PMs, designers, ops, clients: anyone can record with the Blurt app, no repo needed, and send the video. The developer's agent processes it with the code at hand. |
-| 🔎 **Research and walkthroughs** | Competitor tours, UX research, "how this works": you get notes and findings with the frames to prove them. |
+- **正文由作者亲写。** 不改正文和 `docs/argument-state.md`，不代写段落；口述句子只在作者明确要求时，经 writing-companion 的保存工具原样写入。
+- **作者原话、模型复述、机器转写分开存。** `said` 是机器转写，由函数按时间段抄出，不手改；`quote` 只纠正识别错误；复述、候选关系和建议都标成模型的。审核页“保留”只表示这条值得留，不表示采纳了复述。
+- **语音不出本机。** 写作项目里 `transcribe.py` 拒绝云端转写，除非作者同意并加 `--allow-cloud`。
+- **画面只是线索。** 正文位置用 `writing.py locate` 对照稿件文件确认，模糊匹配和多处匹配都会标出来；文献原段在引用前仍要核对原文。
 
-One recording can mix all of these. The agent decides what each item is, and teams can add their own
-[lenses](skills/blurt/reference/schema.md#custom-lenses) (e.g. `ux-research`, `sales-call`, `sop`).
+## 安装与接线
 
-## Get it
+依赖 `uv` 和 `ffmpeg`。首次运行时 agent 会跑 `doctor.py`，按机器挑选本地语音模型，并安装菜单栏 App（`⌥⇧R` 随处开录）。
+
+论文项目按 writing-infra 的白名单接入，然后在项目的 `.blurt/config.json` 写上稿件路径：
 
 ```bash
-npx skills add AGIHunt/blurt
+ln -s ~/Projects/blurt/skills/blurt <论文项目>/.agents/skills/blurt
 ```
-<sub>Claude Code: <code>/plugin marketplace add AGIHunt/blurt</code> · or just paste this repo's URL to your agent and ask it to install the skill.</sub>
 
-Then, in any project, tell your agent **"start blurt"** / **「开始口喷」**.
-The first run picks a speech model for your machine and installs the **Blurt** menu-bar app.
+```json
+{ "writing": { "manuscript": ["drafts/paper.md"], "glossary": "docs/glossary.md", "discussions": "docs/discussions" } }
+```
 
-## How it feels
+建议把 `.blurt/sessions/` 加进论文项目的 `.gitignore`，录屏只留在本机。
 
-1. **Draw the area** to record: drag a region, click a window, or go full screen. Tabs, bookmarks and everything
-   else stay out of the video.
-2. **3-2-1**, then talk. A tiny floating bar shows time and mic level, with ⏸ pause, ↺ redo and **Finish**. The bar
-   itself is never recorded. Shortcuts: `⌥⇧P` pause, `⌥⇧S` finish.
-3. Click **Finish** and get back to work. Your agent transcribes locally, writes the items, and opens the review page.
-4. **Triage like a feed**: `A` keep · `X` drop · `J/K` next/prev · `Z` undo · `G` list · `V` overview. Then export,
-   or say "fix them".
+软件项目照旧可用：bug、想法、笔记、待办，以及飞书 / CSV / GitHub 导出，行为与上游一致。
 
-**Always on:** the Blurt app lives in your menu bar. `⌥⇧R` starts a recording from anywhere and `⌥⇧R` again
-finishes it; `⌥⇧B` opens the menu. Recordings go to a workspace: `~/Blurt` by default, or a project you bind, so
-your agent can process them with the code. Turn on *After recording → Claude Code / Codex* and every recording gets
-processed in the background, with the review page popping up when it's ready.
+## 目录
 
-## Solo or team
+- [skills/blurt/SKILL.md](skills/blurt/SKILL.md)：agent 的流程入口；写作模式见 [reference/writing.md](skills/blurt/reference/writing.md)，四种写作条目见 [reference/lenses/](skills/blurt/reference/lenses/)。
+- `skills/blurt/scripts/`：录制、转写、截图、审核页、导出；`writing.py` 负责原话回填、正文定位和讨论记录导出。
+- `skills/blurt/recorder/macos/`：原生录屏 App（ScreenCaptureKit）。
+- `tests/`：`python3 -m unittest discover -s tests`。
 
-- **Solo:** record → your agent in the same repo processes and fixes. No forms, no copy-paste.
-- **Team:** teammates without a repo just [download Blurt for macOS](https://github.com/AGIHunt/blurt/releases/latest)
-  (unzip, then right-click → Open the first time) and press `⌥⇧R`. Anyone records with the app, then uses *Recent recordings → Copy video* and pastes it into
-  Slack/Feishu. Or bind a shared project folder. Items keep the recorder's name, and exports land in the team's
-  existing tables with your column names.
+## 与上游同步
 
-## Under the hood
+`origin` 是 `semantic-craft/blurt`，`upstream` 是 `AGIHunt/blurt`。合并上游更新：
 
-- **Local-first speech recognition.** [SenseVoice](https://github.com/FunAudioLLM/SenseVoice) via sherpa-onnx is
-  about 240 MB, very fast on any CPU, and handles mixed Chinese/English well. Whisper on Apple Silicon or NVIDIA.
-  You can also bring your own Groq, OpenAI or DashScope key. By default nothing leaves your machine.
-- **Native recorder.** ScreenCaptureKit on macOS with audio and video in sync to within one frame. Tk + ffmpeg on
-  Windows.
-- **Deterministic tools, flexible model.** Scripts handle the recording, speech-to-text, frames, the review page
-  and exports. All the judgement is left to your agent (see [SKILL.md](skills/blurt/SKILL.md)), so it adapts to your
-  product, your language and your team.
-- **Any language in, same language out.** Speak Chinese, English, Japanese…; the items come back in your language.
+```bash
+git fetch upstream && git merge upstream/main
+```
 
-## Roadmap
+冲突集中在 `SKILL.md`、`review.html` 和 `export_local.py` 的标签表，写作相关代码大多在单独的文件里。
 
-Browser capture (console errors and network failures lined up with the video) · circle-to-highlight gestures ·
-Windows tray app · a hosted speech API · more lenses and exporters · toward a personal assistant that watches,
-listens and keeps your projects moving. See [TODO.md](TODO.md).
-
-<p align="center"><sub>MIT · made by <a href="https://github.com/AGIHunt">AGI Hunt</a> · 🐔 if blurt saved you a day, a ⭐ helps others find it</sub></p>
+<p align="center"><sub>MIT · 原作 <a href="https://github.com/AGIHunt">AGI Hunt</a> · 写作版 semantic-craft</sub></p>

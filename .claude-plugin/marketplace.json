@@ -1,7 +1,14 @@
 {
   "name": "blurt",
-  "owner": { "name": "AGI Hunt", "url": "https://github.com/AGIHunt" },
+  "owner": {
+    "name": "semantic-craft",
+    "url": "https://github.com/semantic-craft"
+  },
   "plugins": [
-    { "name": "blurt", "source": "./", "description": "Screen + voice → bugs, ideas, notes and todos (review page; Feishu/CSV/GitHub export). 口喷鸡" }
+    {
+      "name": "blurt",
+      "source": "./",
+      "description": "Screen + voice → revision remarks, reading reactions and gaps for writing projects; bugs, ideas and todos for software (review page; writing record / CSV / Feishu / GitHub export)."
+    }
   ]
 }

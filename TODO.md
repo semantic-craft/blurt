@@ -1,5 +1,17 @@
 # TODO / Roadmap
 
+## 写作版（semantic-craft fork）
+
+- [x] 写作条目：修改意见 / 阅读反应 / 资料缺口 / 口述思考（`reference/lenses/`），写作细则 `reference/writing.md`
+- [x] `writing.py said | locate | export`：机器转写回填、正文 `path:line` 定位、writing-companion 格式讨论记录
+- [x] 写作项目拒绝云端转写（`--allow-cloud` 才放行）；审核页分开显示作者原话、机器转写与模型复述，原话可改
+- [ ] 真实试点：用一篇在写论文录一次“读稿 + 读文献”，按 writing-infra 的 PILOT 格式记摩擦
+- [ ] 阅读反应对接 Zotero：按画面题名查 `zotero-cli` 回填 key，PDF 文件页与印刷页映射
+- [ ] 稿件为 .docx 时的定位（pandoc 转换后的行号回到 Word 段落）
+- [ ] 口述段落的术语纠错：从 `glossary` 生成 Whisper `--prompt`，SenseVoice 路径的纠错留痕
+
+## Upstream roadmap (AGIHunt/blurt)
+
 ## v0.1 (current)
 - [x] Recorder: ffmpeg video (macOS avfoundation, Windows ddagrab/gdigrab) + PortAudio mic, wall-clock A/V sync
       (verified ≤ 1 frame on macOS; ffmpeg's own mic capture dropped ~10% of samples, so it's not used)

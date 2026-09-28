@@ -100,6 +100,19 @@ def new_session_dir(root: Path | None = None) -> Path:
     return d
 
 
+def project_root(path: Path) -> Path | None:
+    """The nearest ancestor that holds a `.blurt/` folder (sessions live in <project>/.blurt/sessions/<ts>)."""
+    for d in Path(path).resolve().parents:
+        if d.name != ".blurt" and (d / ".blurt").is_dir() and (d / ".blurt").resolve() != BLURT_HOME.resolve():
+            return d
+    return None
+
+
+def project_config(path: Path) -> dict:
+    root = project_root(path)
+    return (load_json(root / ".blurt" / "config.json", {}) or {}) if root else {}
+
+
 def fmt_ts(sec: float) -> str:
     sec = max(0.0, sec)
     h, rem = divmod(sec, 3600)
